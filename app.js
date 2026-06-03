@@ -46,15 +46,18 @@ function showScreen(screenToShow) {
 
 btnEnter.addEventListener("click", async () => {
   showScreen(screenScan);
-  resetDebug();
 
+  // ✅ PRIMA la camera (serve per iPhone)
+  await startCamera();
+
+  // ✅ POI tutto il resto
   const ok = await initializeDetection();
+
   if (!ok) {
-    scanStatus.textContent = "Errore inizializzazione riconoscimento";
+    scanStatus.textContent = "Errore inizializzazione";
     return;
   }
 
-  await startCamera();
   startScanningLoop();
 });
 
