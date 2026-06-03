@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R&D Challenge</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <!-- HOME -->
+  <section id="homeScreen" class="screen active">
+    <div class="hero-card">
+      <div class="badge">R&D CHALLENGE</div>
+      <h1>Accesso laboratorio</h1>
+      <p>
+        Entra nella modalità scansione e trova il codice segreto nascosto nel mondo reale.
+      </p>
+
+      <div class="tech-line">
+        <span class="dot"></span>
+        <span>Visione attiva</span>
+        <span class="sep">•</span>
+        <span>Modalità ricerca</span>
+        <span class="sep">•</span>
+        <span>Non-AI Detection</span>
+      </div>
+
+      <button id="enterBtn" class="btn btn-primary">ENTRA</button>
+
+      <div class="footer-note">
+        Consenti l’accesso alla fotocamera per iniziare
+      </div>
+    </div>
+  </section>
+
+  <!-- SCANNER -->
+  <section id="scanScreen" class="screen">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="badge">R&D CHALLENGE</div>
+        <div class="status-wrap">
+          <span class="status-led" id="statusLed"></span>
+          <span id="statusText">In attesa...</span>
+        </div>
+      </div>
+
+      <button id="backBtn" class="btn btn-secondary">Esci</button>
+    </div>
+
+    <div class="scanner-shell">
+      <div class="scanner-frame">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="viewCanvas" class="overlay"></canvas>
+
+        <div class="hud">
+          <div class="hud-corner tl"></div>
+          <div class="hud-corner tr"></div>
+          <div class="hud-corner bl"></div>
+          <div class="hud-corner br"></div>
+
+          <div class="scan-line"></div>
+
+          <div class="hint-box">
+            Inquadra la targhetta target
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="toggleScanBtn" class="btn btn-primary">Avvia scansione</button>
+      </div>
+
+      <div class="stats-panel">
+        <div class="stat">
+          <span class="stat-label">Good matches</span>
+          <span class="stat-value" id="goodMatchesValue">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Inliers</span>
+          <span class="stat-value" id="inliersValue">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Rilevamento</span>
+          <span class="stat-value" id="foundValue">NO</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECRET MODAL -->
+  <div id="secretModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-badge">TARGET ACQUISITO</div>
+      <h2>Hai trovato il codice segreto</h2>
+      <p>Accesso autorizzato. Complimenti, sfida completata.</p>
+      <button id="closeModalBtn" class="btn btn-primary">Continua</button>
+    </div>
+  </div>
+
+  <!-- elementi nascosti di supporto -->
+  <img id="targetImg" src="target.jpg" alt="target" hidden />
+  <canvas id="processCanvas" hidden></canvas>
+
+  <!-- OpenCV.js -->
+  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
