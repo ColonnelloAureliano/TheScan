@@ -1,119 +1,82 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>R&D Challenge</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R&D Challenge</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: white;
-      text-align: center;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f1115;
+  color: white;
+  text-align: center;
+}
 
-    .screen {
-      display: none;
-      min-height: 100dvh; /* fix viewport mobile */
-      padding: 24px 16px;
-      box-sizing: border-box;
-    }
+.screen {
+  display: none;
+  min-height: 100dvh;
+  padding: 20px;
+}
 
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 
-    .btn {
-      padding: 14px 24px;
-      border: none;
-      border-radius: 12px;
-      background: #d71920;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
+.btn {
+  padding: 15px 25px;
+  background: #d71920;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  margin-top: 20px;
+}
 
-    .btn.secondary {
-      background: #444;
-    }
+#video {
+  width: 100%;
+  max-width: 400px;
+  background: black;
+  border-radius: 12px;
+}
 
-    #video {
-      width: 100%;
-      max-width: 420px;
-      border-radius: 16px;
-      background: black;
-      margin-top: 16px;
-    }
-
-    #scanStatus {
-      margin-top: 16px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #ffc107;
-    }
-
-    #debugBox {
-      margin-top: 14px;
-      font-size: 14px;
-      color: #ccc;
-    }
-
-    #targetImage {
-      display: none;
-    }
-
-    canvas {
-      display: none;
-    }
-  </style>
+canvas {
+  display: none;
+}
+</style>
 </head>
 
 <body>
 
-<!-- SCHERMATA START -->
+<!-- START -->
 <section id="screenStart" class="screen active">
   <h1>R&D CHALLENGE</h1>
-  <h2>Accesso laboratorio</h2>
-  <p>Trova il codice segreto nel mondo reale</p>
-  <button class="btn" id="btnEnter">ENTRA</button>
+  <p>Trova il codice segreto</p>
+  <button id="btnEnter" class="btn">ENTRA</button>
 </section>
 
-<!-- SCHERMATA SCAN -->
+<!-- SCAN -->
 <section id="screenScan" class="screen">
-  <p>Attiva la videocamera</p>
+  <p>Scansione attiva</p>
 
   <video id="video" autoplay playsinline muted></video>
   <canvas id="canvas"></canvas>
 
-  <div id="scanStatus">In attesa...</div>
+  <p id="scanStatus">In attesa...</p>
 
-  <div id="debugBox">
-    <p>Matches: <span id="goodMatches">0</span></p>
-    <p>Inliers: <span id="inliers">0</span></p>
-    <p>Rilevamento: <span id="detectionText">NO</span></p>
-  </div>
-
-  <button class="btn secondary" id="btnExit">Esci</button>
+  <button id="btnExit" class="btn">Esci</button>
 </section>
 
-<!-- SCHERMATA RISULTATO -->
+<!-- RESULT -->
 <section id="screenResult" class="screen">
-  <h1>✅ Codice trovato!</h1>
-  <p>Accesso autorizzato</p>
-  <button class="btn" id="btnContinue">Continua</button>
+  <h1>✅ Hai trovato il codice segreto</h1>
+  <button id="btnContinue" class="btn">Continua</button>
 </section>
 
-<!-- TARGET -->
-<img id="targetImage" src="target.jpg" />
-
-<!-- ✅ ORDINE CORRETTO SCRIPT -->
-<script async src="https://docs.opencv.org/4.x/opencv.js"></script>
 <script src="app.js"></script>
 
 </body>
