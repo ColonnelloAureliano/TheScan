@@ -4,107 +4,123 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>R&D Challenge</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1115;
+      color: white;
+      text-align: center;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: none;
+      padding: 24px 16px;
+      box-sizing: border-box;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      background: #d71920;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn.secondary {
+      background: #444;
+    }
+
+    #video {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 14px;
+      background: black;
+      margin-top: 16px;
+    }
+
+    #scanStatus {
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffc107;
+    }
+
+    #debugBox {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    #targetImage {
+      display: none;
+    }
+
+    canvas {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <div class="bg-grid"></div>
 
-  <!-- HOME -->
-  <section id="homeScreen" class="screen active">
-    <div class="hero-card">
-      <div class="badge">R&D CHALLENGE</div>
+  <!-- SCHERMATA 1 -->
+  <section id="screenStart" class="screen active">
+    <div style="max-width: 700px;">
+      <div style="font-size: 18px; letter-spacing: 1px;">R&D CHALLENGE</div>
       <h1>Accesso laboratorio</h1>
-      <p>
-        Entra nella modalità scansione e trova il codice segreto nascosto nel mondo reale.
-      </p>
-
-      <div class="tech-line">
-        <span class="dot"></span>
-        <span>Visione attiva</span>
-        <span class="sep">•</span>
-        <span>Modalità ricerca</span>
-        <span class="sep">•</span>
-        <span>Non-AI Detection</span>
-      </div>
-
-      <button id="enterBtn" class="btn btn-primary">ENTRA</button>
-
-      <div class="footer-note">
-        Consenti l’accesso alla fotocamera per iniziare
-      </div>
+      <p>Entra nella modalità scansione e trova il codice segreto nascosto nel mondo reale.</p>
+      <p>Visione attiva • Modalità ricerca • Non-AI Detection</p>
+      <button class="btn" id="btnEnter">ENTRA</button>
     </div>
   </section>
 
-  <!-- SCANNER -->
-  <section id="scanScreen" class="screen">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="badge">R&D CHALLENGE</div>
-        <div class="status-wrap">
-          <span class="status-led" id="statusLed"></span>
-          <span id="statusText">In attesa...</span>
-        </div>
+  <!-- SCHERMATA 2 -->
+  <section id="screenScan" class="screen">
+    <div style="max-width: 700px; width: 100%;">
+      <div style="font-size: 18px; letter-spacing: 1px;">R&D CHALLENGE</div>
+      <p>Consenti l’accesso alla fotocamera per iniziare</p>
+
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas"></canvas>
+
+      <div id="scanStatus">In attesa...</div>
+
+      <div id="debugBox">
+        <div>Good matches <span id="goodMatches">0</span></div>
+        <div>Inliers <span id="inliers">0</span></div>
+        <div>Rilevamento <span id="detectionText">NO</span></div>
       </div>
 
-      <button id="backBtn" class="btn btn-secondary">Esci</button>
-    </div>
-
-    <div class="scanner-shell">
-      <div class="scanner-frame">
-        <video id="video" autoplay playsinline muted></video>
-        <canvas id="viewCanvas" class="overlay"></canvas>
-
-        <div class="hud">
-          <div class="hud-corner tl"></div>
-          <div class="hud-corner tr"></div>
-          <div class="hud-corner bl"></div>
-          <div class="hud-corner br"></div>
-
-          <div class="scan-line"></div>
-
-          <div class="hint-box">
-            Inquadra la targhetta target
-          </div>
-        </div>
-      </div>
-
-      <div class="controls">
-        <button id="toggleScanBtn" class="btn btn-primary">Avvia scansione</button>
-      </div>
-
-      <div class="stats-panel">
-        <div class="stat">
-          <span class="stat-label">Good matches</span>
-          <span class="stat-value" id="goodMatchesValue">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Inliers</span>
-          <span class="stat-value" id="inliersValue">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Rilevamento</span>
-          <span class="stat-value" id="foundValue">NO</span>
-        </div>
-      </div>
+      <button class="btn secondary" id="btnExit">Esci</button>
     </div>
   </section>
 
-  <!-- SECRET MODAL -->
-  <div id="secretModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="modal-badge">TARGET ACQUISITO</div>
-      <h2>Hai trovato il codice segreto</h2>
+  <!-- SCHERMATA 3 -->
+  <section id="screenResult" class="screen">
+    <div style="max-width: 700px;">
+      <h1>Hai trovato il codice segreto</h1>
       <p>Accesso autorizzato. Complimenti, sfida completata.</p>
-      <button id="closeModalBtn" class="btn btn-primary">Continua</button>
+      <button class="btn" id="btnContinue">Continua</button>
     </div>
-  </div>
+  </section>
 
-  <!-- elementi nascosti di supporto -->
-  <img id="targetImg" src="target.jpg" alt="target" hidden />
-  <canvas id="processCanvas" hidden></canvas>
+  <!-- immagine target -->
+  <img id="targetImage" src="target.jpg" alt="Target" />
 
-  <!-- OpenCV.js -->
-  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+``
