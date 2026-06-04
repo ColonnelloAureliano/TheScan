@@ -3,110 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R&D Challenge</title>
+<title>Detection Test</title>
 
 <style>
 body {
   margin: 0;
-  font-family: Arial;
-  background: #0f1115;
+  background: #111;
   color: white;
+  font-family: Arial;
   text-align: center;
 }
 
-.screen {
-  display: none;
-  min-height: 100dvh;
-  padding: 20px;
-}
-
-.screen.active {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn {
-  padding: 16px 28px;
-  background: #d71920;
-  border: none;
-  border-radius: 12px;
-  color: white;
+button {
+  padding: 15px 25px;
   font-size: 18px;
-  margin-top: 25px;
-  cursor: pointer;
-}
-
-#video {
-  width: 100%;
-  max-width: 400px;
-  background: black;
-  border-radius: 12px;
-}
-
-canvas {
-  display: none;
-}
-
-.notice {
-  margin-top: 12px;
-  padding: 12px;
-  font-size: 14px;
+  background: red;
+  color: white;
+  border: none;
   border-radius: 10px;
-  background: rgba(255,200,0,0.15);
-  pointer-events: none; /* 🔥 FIX iPhone */
+  margin-top: 20px;
 }
 
-.notice.vertical {
-  background: rgba(255,80,80,0.2);
+video {
+  width: 90%;
+  max-width: 400px;
+  margin-top: 20px;
+  background: black;
 }
+
 </style>
 </head>
 
 <body>
 
-<!-- START -->
-<section id="screenStart" class="screen active">
-  <h1>R&D CHALLENGE</h1>
-  <p>Trova il codice segreto</p>
+<h1>Test Detection</h1>
 
-  <div id="noticeStart" class="notice">
-    📱 Metti il telefono in orizzontale
-  </div>
+<button id="startBtn">START</button>
 
-  <button id="btnEnter" class="btn">ENTRA</button>
-</section>
+<p id="status">In attesa</p>
 
-<!-- SCAN -->
-<section id="screenScan" class="screen">
-  <p>Scansione attiva</p>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas" style="display:none;"></canvas>
 
-  <div id="noticeScan" class="notice">
-    📱 Scansione migliore in orizzontale
-  </div>
+<p>Matches: <span id="matches">0</span></p>
 
-  <video id="video" autoplay playsinline muted></video>
-  <canvas id="canvas"></canvas>
-
-  <p id="scanStatus">In attesa...</p>
-
-  <p>Matches: <span id="goodMatches">0</span></p>
-  <p>Inliers: <span id="inliers">0</span></p>
-  <p>Rilevamento: <span id="detectionText">NO</span></p>
-
-  <button id="btnExit" class="btn">Esci</button>
-</section>
-
-<!-- RESULT -->
-<section id="screenResult" class="screen">
-  <h1>✅ Hai trovato il codice segreto</h1>
-  <button id="btnContinue" class="btn">Continua</button>
-</section>
-
-<!-- ✅ AGGIUNGI QUESTA -->
+<!-- ✅ FONDAMENTALE -->
 <img id="targetImage" src="target.jpg" style="display:none;">
 
+<!-- ✅ OpenCV -->
+<script src="https://docs.opencv.org/4.x/opencv.js"></script>
 <script src="app.js"></script>
 
 </body>
