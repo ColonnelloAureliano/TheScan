@@ -1,392 +1,109 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
-  />
-  <title>R&D Challenge</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R&D Challenge</title>
 
-  <style>
-    :root {
-      --bg: #0f1115;
-      --panel: #171b22;
-      --accent: #d71920;
-      --accent-2: #ffc107;
-      --text: #ffffff;
-      --muted: #bfc7d5;
-      --ok: #42d77d;
-      --danger: #ff6b6b;
-      --card-radius: 18px;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f1115;
+  color: white;
+  text-align: center;
+}
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+.screen {
+  display: none;
+  min-height: 100dvh;
+  padding: 20px;
+}
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-      overflow-x: hidden;
-    }
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 
-    body {
-      text-align: center;
-    }
+.btn {
+  padding: 15px 25px;
+  background: #d71920;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 18px;
+  margin-top: 20px;
+}
 
-    .screen {
-      display: none;
-      min-height: 100dvh;
-      padding:
-        calc(18px + env(safe-area-inset-top))
-        calc(16px + env(safe-area-inset-right))
-        calc(18px + env(safe-area-inset-bottom))
-        calc(16px + env(safe-area-inset-left));
-      justify-content: center;
-      align-items: center;
-    }
+#video {
+  width: 100%;
+  max-width: 400px;
+  background: black;
+  border-radius: 12px;
+}
 
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-    }
+canvas {
+  display: none;
+}
 
-    .card {
-      width: 100%;
-      max-width: 760px;
-      background: linear-gradient(180deg, #1a1f27 0%, #12161c 100%);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--card-radius);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-      padding: 20px;
-    }
+.notice {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 10px;
+  background: rgba(255,200,0,0.15);
+}
 
-    .eyebrow {
-      font-size: 14px;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      margin: 4px 0 12px;
-      font-size: clamp(28px, 5vw, 44px);
-      line-height: 1.05;
-    }
-
-    h2 {
-      margin: 8px 0 10px;
-      font-size: clamp(22px, 4vw, 30px);
-    }
-
-    p {
-      margin: 8px 0;
-      color: var(--muted);
-      line-height: 1.45;
-      font-size: 16px;
-    }
-
-    .meta-line {
-      color: #d8dde6;
-      font-size: 15px;
-      margin-top: 14px;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 18px;
-    }
-
-    .btn {
-      appearance: none;
-      border: none;
-      border-radius: 14px;
-      background: var(--accent);
-      color: white;
-      font-size: 18px;
-      font-weight: 700;
-      padding: 14px 24px;
-      min-width: 160px;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(215, 25, 32, 0.25);
-    }
-
-    .btn.secondary {
-      background: #2e3744;
-      box-shadow: none;
-    }
-
-    .btn:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .scan-layout {
-      display: grid;
-      gap: 14px;
-    }
-
-    .video-wrap {
-      position: relative;
-      width: 100%;
-      max-width: 760px;
-      margin: 0 auto;
-      border-radius: 18px;
-      overflow: hidden;
-      background: #000;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-      aspect-ratio: 16 / 9;
-    }
-
-    #video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-      background: #000;
-    }
-
-    #scannerOverlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .reticle {
-      width: min(60vw, 340px);
-      height: min(36vw, 210px);
-      border: 2px solid rgba(255,255,255,0.7);
-      border-radius: 18px;
-      position: relative;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.22);
-    }
-
-    .reticle::before,
-    .reticle::after {
-      content: "";
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      height: 2px;
-      background: rgba(255, 193, 7, 0.9);
-      animation: scanline 2.2s linear infinite;
-    }
-
-    .reticle::before {
-      top: 12px;
-    }
-
-    .reticle::after {
-      top: calc(100% - 14px);
-      opacity: 0.15;
-    }
-
-    @keyframes scanline {
-      0%   { transform: translateY(0); }
-      50%  { transform: translateY(calc(min(36vw, 210px) - 30px)); }
-      100% { transform: translateY(0); }
-    }
-
-    .status {
-      margin-top: 16px;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent-2);
-      min-height: 28px;
-    }
-
-    .debug-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(90px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .debug-box {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
-      padding: 12px 10px;
-    }
-
-    .debug-k {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    .debug-v {
-      font-size: 21px;
-      font-weight: 700;
-    }
-
-    .hint {
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 12px;
-    }
-
-    #orientationBlocker {
-      position: fixed;
-      inset: 0;
-      display: none;
-      z-index: 9999;
-      background:
-        radial-gradient(circle at center, rgba(23,27,34,0.95) 0%, rgba(10,12,16,0.98) 75%);
-      padding:
-        calc(24px + env(safe-area-inset-top))
-        calc(20px + env(safe-area-inset-right))
-        calc(24px + env(safe-area-inset-bottom))
-        calc(20px + env(safe-area-inset-left));
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    #orientationBlocker.active {
-      display: flex;
-    }
-
-    .rotate-card {
-      width: min(92vw, 560px);
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 22px;
-      padding: 24px;
-      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-    }
-
-    .rotate-icon {
-      font-size: 54px;
-      margin-bottom: 12px;
-    }
-
-    .small-ok {
-      color: var(--ok);
-    }
-
-    .small-danger {
-      color: var(--danger);
-    }
-
-    #targetImage, #canvas {
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .btn {
-        width: 100%;
-        max-width: 320px;
-      }
-      .debug-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+/* se verticale cambia colore */
+.notice.vertical {
+  background: rgba(255,80,80,0.2);
+}
+</style>
 </head>
+
 <body>
 
-  <!-- BLOCCO ORIENTAMENTO -->
-  <div id="orientationBlocker" class="active">
-    <div class="rotate-card">
-      <div class="rotate-icon">📱↻</div>
-      <h2>Ruota il telefono</h2>
-      <p>Per giocare devi usare il cellulare in <strong>orizzontale</strong>.</p>
-      <p>Ruota il dispositivo e torna alla schermata di scansione.</p>
-      <p class="hint">Su web non posso forzare l’orientamento in tutti i browser, ma posso bloccare il gioco finché non sei in landscape.</p>
-    </div>
+<!-- START -->
+<section id="screenStart" class="screen active">
+  <h1>R&D CHALLENGE</h1>
+  <p>Trova il codice segreto</p>
+
+  <div id="noticeStart" class="notice">
+    📱 Metti il telefono in orizzontale
   </div>
 
-  <!-- SCHERMATA 1 -->
-  <section id="screenStart" class="screen active">
-    <div class="card">
-      <div class="eyebrow">R&D CHALLENGE</div>
-      <h1>Accesso laboratorio</h1>
-      <p>Entra nella modalità scansione e trova il codice segreto nascosto nel mondo reale.</p>
-      <p class="meta-line">Visione attiva • Modalità ricerca • Non‑AI Detection</p>
+  <button id="btnEnter" class="btn">ENTRA</button>
+</section>
 
-      <div class="btn-row">
-        <button class="btn" id="btnEnter">ENTRA</button>
-      </div>
+<!-- SCAN -->
+<section id="screenScan" class="screen">
+  <p>Scansione attiva</p>
 
-      <p class="hint">Consiglio: usa la fotocamera posteriore e tieni il telefono in orizzontale.</p>
-    </div>
-  </section>
+  <div id="noticeScan" class="notice">
+    📱 Scansione migliore in orizzontale
+  </div>
 
-  <!-- SCHERMATA 2 -->
-  <section id="screenScan" class="screen">
-    <div class="card">
-      <div class="eyebrow">R&D CHALLENGE</div>
-      <h2>Modalità scansione</h2>
-      <p>Inquadra l’immagine target. Quando il riconoscimento supera la soglia, apparirà il codice segreto.</p>
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
 
-      <div class="video-wrap">
-        <video id="video" autoplay playsinline muted></video>
+  <p id="scanStatus">In attesa...</p>
 
-        <div id="scannerOverlay">
-          <div class="reticle"></div>
-        </div>
-      </div>
+  <p>Matches: <span id="goodMatches">0</span></p>
+  <p>Inliers: <span id="inliers">0</span></p>
+  <p>Rilevamento: <span id="detectionText">NO</span></p>
 
-      <canvas id="canvas"></canvas>
+  <button id="btnExit" class="btn">Esci</button>
+</section>
 
-      <div id="scanStatus" class="status">In attesa...</div>
+<!-- RESULT -->
+<section id="screenResult" class="screen">
+  <h1>✅ Hai trovato il codice segreto</h1>
+  <button id="btnContinue" class="btn">Continua</button>
+</section>
 
-      <div class="debug-grid">
-        <div class="debug-box">
-          <div class="debug-k">Good matches</div>
-          <div class="debug-v" id="goodMatches">0</div>
-        </div>
-        <div class="debug-box">
-          <div class="debug-k">Inliers</div>
-          <div class="debug-v" id="inliers">0</div>
-        </div>
-        <div class="debug-box">
-          <div class="debug-k">Rilevamento</div>
-          <div class="debug-v" id="detectionText">NO</div>
-        </div>
-      </div>
+<script src="app.js"></script>
 
-      <div class="btn-row">
-        <button class="btn secondary" id="btnExit">Esci</button>
-      </div>
-
-      <p class="hint" id="engineHint">Motore di riconoscimento non inizializzato.</p>
-    </div>
-  </section>
-
-  <!-- SCHERMATA 3 -->
-  <section id="screenResult" class="screen">
-    <div class="card">
-      <div class="eyebrow small-ok">TARGET ACQUISITO</div>
-      <h1>Hai trovato il codice segreto</h1>
-      <p>Accesso autorizzato. Complimenti, sfida completata.</p>
-
-      <div class="btn-row">
-        <button class="btn" id="btnContinue">Continua</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- IMMAGINE TARGET -->
-  <img id="targetImage" src="target.jpg" alt="Target" />
-
-  <!-- OPENCV + APP -->
-  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>
