@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 const screenStart = document.getElementById("screenStart");
 const screenScan = document.getElementById("screenScan");
 const screenResult = document.getElementById("screenResult");
@@ -29,41 +31,33 @@ function showScreen(screen) {
   screen.classList.add("active");
 }
 
-/* ORIENTAMENTO */
+/* ORIENTAMENTO (SOLO AVVISO) */
 function updateOrientation() {
   const landscape = window.innerWidth > window.innerHeight;
 
   if (noticeStart) {
     noticeStart.classList.toggle("vertical", !landscape);
-    noticeStart.textContent = landscape
-      ? "📱 Orientamento OK"
-      : "📱 Metti il telefono in orizzontale";
   }
 
   if (noticeScan) {
     noticeScan.classList.toggle("vertical", !landscape);
-    noticeScan.textContent = landscape
-      ? "📱 Pronto per la scansione"
-      : "📱 Ruota il telefono in orizzontale";
   }
 }
 
 window.addEventListener("resize", updateOrientation);
 window.addEventListener("orientationchange", updateOrientation);
 
-/* CLICK ENTRA */
-btnEnter.addEventListener("click", async () => {
-
+/* ✅ FIX iPhone CLICK */
+function startFlow() {
   showScreen(screenScan);
-
   updateOrientation();
+  startCamera().then(() => startScan());
+}
 
-  await startCamera();
+btnEnter.addEventListener("click", startFlow);
+btnEnter.addEventListener("touchend", startFlow);
 
-  startScan();
-});
-
-/* START CAMERA */
+/* CAMERA */
 async function startCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -78,13 +72,13 @@ async function startCamera() {
 
     scanStatus.textContent = "Camera attiva ✅";
 
-  } catch (err) {
+  } catch (e) {
     scanStatus.textContent = "Errore camera ❌";
-    console.error(err);
+    console.error(e);
   }
 }
 
-/* LOOP SCAN */
+/* SCAN */
 function startScan() {
 
   const waitVideo = () => {
@@ -104,15 +98,15 @@ function startScan() {
   waitVideo();
 }
 
-/* LOOP FRAME */
+/* LOOP */
 function scanFrame() {
 
   if (!scanning) return;
 
   ctx.drawImage(video, 0, 0);
 
-  // 🔥 DETECTION (FAKE → cambi poi)
-  const detected = fakeDetection();
+  // 🔥 placeholder detection
+  const detected = Math.random() > 0.995;
 
   goodMatchesEl.textContent = Math.floor(Math.random() * 30);
   inliersEl.textContent = Math.floor(Math.random() * 20);
@@ -126,16 +120,9 @@ function scanFrame() {
   requestAnimationFrame(scanFrame);
 }
 
-/* DETECTION TEMPORANEA */
-function fakeDetection() {
-  // probabilità bassa → sembra reale
-  return Math.random() > 0.995;
-}
-
 /* TROVATO */
 function onFound() {
   scanning = false;
-
   scanStatus.textContent = "TARGET TROVATO ✅";
 
   setTimeout(() => {
@@ -158,5 +145,6 @@ btnExit.addEventListener("click", () => {
   showScreen(screenStart);
 });
 
-/* INIT */
 updateOrientation();
+
+});
