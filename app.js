@@ -64,7 +64,7 @@ function stopCamera() {
 // ===== INIT OPENCV =====
 
 async function initCV() {
-
+goodMatchesEl.textContent = "KP: " + targetKP.size();
 console.log("Target keypoints:", targetKP.size());
 console.log("Target descriptors empty:", targetDesc.empty());
 
@@ -107,6 +107,7 @@ if (img.empty()) {
   targetDesc = new cv.Mat();
 
   orb.detectAndCompute(targetGray, new cv.Mat(), targetKP, targetDesc);
+  scanStatus.textContent = "KP target: " + targetKP.size();
 
   console.log("✅ Target keypoints:", targetKP.size());
 
