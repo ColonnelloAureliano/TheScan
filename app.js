@@ -1,150 +1,140 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // DOM
+  // =========================
+  const screenStart = document.getElementById("screenStart");
+  const screenScan = document.getElementById("screenScan");
+  const screenResult = document.getElementById("screenResult");
 
-const screenStart = document.getElementById("screenStart");
-const screenScan = document.getElementById("screenScan");
-const screenResult = document.getElementById("screenResult");
+  const btnEnter = document.getElementById("btnEnter");
+  const btnExit = document.getElementById("btnExit");
+  const btnContinue = document.getElementById("btnContinue");
 
-const btnEnter = document.getElementById("btnEnter");
-const btnExit = document.getElementById("btnExit");
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+  const scanStatus = document.getElementById("scanStatus");
+  const goodMatchesEl = document.getElementById("goodMatches");
+  const inliersEl = document.getElementById("inliers");
+  const detectionTextEl = document.getElementById("detectionText");
 
-const scanStatus = document.getElementById("scanStatus");
+  const noticeStart = document.getElementById("noticeStart");
+  const noticeScan = document.getElementById("noticeScan");
+  const targetImage = document.getElementById("targetImage");
 
-const goodMatchesEl = document.getElementById("goodMatches");
-const inliersEl = document.getElementById("inliers");
-const detectionTextEl = document.getElementById("detectionText");
+  // =========================
+  // STATO
+  // =========================
+  let stream = null;
+  let scanning = false;
+  let cvReady = false;
+  let engineReady = false;
+  let secretFound = false;
+  let rafId = null;
+  let lastProcessTs = 0;
 
-const noticeStart = document.getElementById("noticeStart");
-const noticeScan = document.getElementById("noticeScan");
+  // soglie iniziali (ritoccabili)
+  const MIN_GOOD_MATCHES = 18;
+  const MIN_INLIERS = 10;
+  const REQUIRED_CONSECUTIVE_DETECTIONS = 3;
+  const PROCESS_EVERY_MS = 120; // riduce carico CPU
+  const MAX_PROCESS_WIDTH = 960;
 
-let stream = null;
-let scanning = false;
+  let consecutiveDetections = 0;
 
-/* NAVIGAZIONE */
-function showScreen(screen) {
-  screenStart.classList.remove("active");
-  screenScan.classList.remove("active");
-  screenResult.classList.remove("active");
-  screen.classList.add("active");
-}
+  // OpenCV
+  let orb = null;
+  let matcher = null;
+  let targetGray = null;
+  let targetKeypoints = null;
+  let targetDescriptors = null;
 
-/* ORIENTAMENTO (SOLO AVVISO) */
-function updateOrientation() {
-  const landscape = window.innerWidth > window.innerHeight;
-
-  if (noticeStart) {
-    noticeStart.classList.toggle("vertical", !landscape);
+  // =========================
+  // UI
+  // =========================
+  function showScreen(screen) {
+    screenStart.classList.remove("active");
+    screenScan.classList.remove("active");
+    screenResult.classList.remove("active");
+    screen.classList.add("active");
   }
 
-  if (noticeScan) {
-    noticeScan.classList.toggle("vertical", !landscape);
-  }
-}
+  function updateOrientation() {
+    const landscape = window.innerWidth > window.innerHeight;
 
-window.addEventListener("resize", updateOrientation);
-window.addEventListener("orientationchange", updateOrientation);
-
-/* ✅ FIX iPhone CLICK */
-function startFlow() {
-  showScreen(screenScan);
-  updateOrientation();
-  startCamera().then(() => startScan());
-}
-
-btnEnter.addEventListener("click", startFlow);
-btnEnter.addEventListener("touchend", startFlow);
-
-/* CAMERA */
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false
-    });
-
-    video.srcObject = stream;
-    video.setAttribute("playsinline", true);
-
-    await video.play();
-
-    scanStatus.textContent = "Camera attiva ✅";
-
-  } catch (e) {
-    scanStatus.textContent = "Errore camera ❌";
-    console.error(e);
-  }
-}
-
-/* SCAN */
-function startScan() {
-
-  const waitVideo = () => {
-    if (video.readyState >= 2 && video.videoWidth > 0) {
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      scanning = true;
-      scanFrame();
-
-    } else {
-      requestAnimationFrame(waitVideo);
+    if (noticeStart) {
+      noticeStart.classList.toggle("vertical", !landscape);
+      noticeStart.textContent = landscape
+        ? "📱 Orientamento OK"
+        : "📱 Metti il telefono in orizzontale";
     }
-  };
 
-  waitVideo();
-}
-
-/* LOOP */
-function scanFrame() {
-
-  if (!scanning) return;
-
-  ctx.drawImage(video, 0, 0);
-
-  // 🔥 placeholder detection
-  const detected = Math.random() > 0.995;
-
-  goodMatchesEl.textContent = Math.floor(Math.random() * 30);
-  inliersEl.textContent = Math.floor(Math.random() * 20);
-  detectionTextEl.textContent = detected ? "SI" : "NO";
-
-  if (detected) {
-    onFound();
-    return;
+    if (noticeScan) {
+      noticeScan.classList.toggle("vertical", !landscape);
+      noticeScan.textContent = landscape
+        ? "📱 Pronto per la scansione"
+        : "📱 Ruota il telefono in orizzontale";
+    }
   }
 
-  requestAnimationFrame(scanFrame);
-}
-
-/* TROVATO */
-function onFound() {
-  scanning = false;
-  scanStatus.textContent = "TARGET TROVATO ✅";
-
-  setTimeout(() => {
-    stopCamera();
-    showScreen(screenResult);
-  }, 500);
-}
-
-/* STOP CAMERA */
-function stopCamera() {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
+  function setDebug(matches = 0, inliers = 0, detected = false) {
+    if (goodMatchesEl) goodMatchesEl.textContent = String(matches);
+    if (inliersEl) inliersEl.textContent = String(inliers);
+    if (detectionTextEl) detectionTextEl.textContent = detected ? "SI" : "NO";
   }
-}
 
-/* USCITA */
-btnExit.addEventListener("click", () => {
-  scanning = false;
-  stopCamera();
-  showScreen(screenStart);
-});
+  function resetDebug() {
+    setDebug(0, 0, false);
+    if (scanStatus) scanStatus.textContent = "In attesa...";
+    consecutiveDetections = 0;
+  }
 
-updateOrientation();
+  window.addEventListener("resize", updateOrientation);
+  window.addEventListener("orientationchange", updateOrientation);
 
-});
+  // =========================
+  // OpenCV init
+  // =========================
+  function waitForOpenCv() {
+    return new Promise((resolve, reject) => {
+      if (window.cv && typeof cv.Mat === "function") {
+        cvReady = true;
+        resolve();
+        return;
+      }
+
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries++;
+        if (window.cv && typeof cv.Mat === "function") {
+          clearInterval(timer);
+          cvReady = true;
+          resolve();
+        } else if (tries > 250) {
+          clearInterval(timer);
+          reject(new Error("OpenCV non caricato"));
+        }
+      }, 100);
+    });
+  }
+
+  function waitForImage(img) {
+    return new Promise((resolve, reject) => {
+      if (!img) {
+        reject(new Error("targetImage non trovato"));
+        return;
+      }
+      if (img.complete && img.naturalWidth > 0) {
+        resolve();
+        return;
+      }
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Immagine target non caricata"));
+    });
+  }
+
+  function createORB() {
+    // compatibilità tra build diverse di OpenCV.js
+    if (window.cv && cv.ORB && typeof cv.ORB.create === "function") {
+      return cv.ORB.create(1200);
