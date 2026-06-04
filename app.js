@@ -113,7 +113,7 @@ if (img.empty()) {
 
   img.delete();
 
-  scanStatus.textContent = "Detection pronta ✅";
+  scanStatus.textContent = "KP target: " + targetKP.size();
 }
 
 
