@@ -62,10 +62,15 @@ function stopCamera() {
 }
 
 // ===== INIT OPENCV =====
+
 async function initCV() {
+
+console.log("Target keypoints:", targetKP.size());
+console.log("Target descriptors empty:", targetDesc.empty());
 
   scanStatus.textContent = "Carico detection...";
 
+  // aspetta OpenCV
   await new Promise(resolve => {
     const check = setInterval(() => {
       if (window.cv && cv.Mat) {
@@ -75,10 +80,25 @@ async function initCV() {
     }, 100);
   });
 
+  // aspetta immagine
+  await new Promise(resolve => {
+    if (targetImage.complete) {
+      resolve();
+    } else {
+      targetImage.onload = resolve;
+    }
+  });
+
   orb = new cv.ORB(1000);
   matcher = new cv.BFMatcher(cv.NORM_HAMMING, false);
 
-  const img = cv.imread(targetImage);
+  
+const img = cv.imread(targetImage);
+
+if (img.empty()) {
+  console.log("❌ ERRORE: target non caricato");
+}
+
 
   targetGray = new cv.Mat();
   cv.cvtColor(img, targetGray, cv.COLOR_RGBA2GRAY);
@@ -88,12 +108,13 @@ async function initCV() {
 
   orb.detectAndCompute(targetGray, new cv.Mat(), targetKP, targetDesc);
 
-  img.delete();
+  console.log("✅ Target keypoints:", targetKP.size());
 
-  cvReady = true;
+  img.delete();
 
   scanStatus.textContent = "Detection pronta ✅";
 }
+
 
 // ===== SCAN =====
 function startScan() {
