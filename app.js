@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const inliersEl = document.getElementById("inliers");
   const detectionTextEl = document.getElementById("detectionText");
 
+  const progressText = document.getElementById("progressText");
+  const progressBar = document.getElementById("progressBar");
+
   const noticeStart = document.getElementById("noticeStart");
   const noticeScan = document.getElementById("noticeScan");
   const targetImage = document.getElementById("targetImage");
@@ -39,10 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let targetKeypoints = null;
   let targetDesc = null;
 
-  // parametri detection (blandi)
-  const DETECT_THRESHOLD = 5;     // soglia facile
+  // parametri detection
+  const DETECT_THRESHOLD = 8;     // quanti match servono
   const STABILITY_REQUIRED = 3;   // frame consecutivi
-  const MAX_PROCESS_WIDTH = 960;  // alleggerisce mobile
+  const MAX_PROCESS_WIDTH = 960;  // un po' più alto per più dettagli
 
   let stabilityCounter = 0;
 
@@ -65,6 +68,28 @@ document.addEventListener("DOMContentLoaded", () => {
     inliersEl.textContent = "0";
     detectionTextEl.textContent = "NO";
     stabilityCounter = 0;
+    updateProgress(0);
+  }
+
+  function updateProgress(currentMatches) {
+    const safeCurrent = Math.max(0, currentMatches);
+    const percent = Math.min(100, Math.round((safeCurrent / DETECT_THRESHOLD) * 100));
+
+    if (progressText) {
+      progressText.textContent = `Avvicinamento: ${safeCurrent} / ${DETECT_THRESHOLD} (${percent}%)`;
+    }
+
+    if (progressBar) {
+      progressBar.style.width = percent + "%";
+
+      if (percent < 40) {
+        progressBar.style.background = "#ff5252";
+      } else if (percent < 80) {
+        progressBar.style.background = "#ffd600";
+      } else {
+        progressBar.style.background = "#00c853";
+      }
+    }
   }
 
   function updateOrientationNotice() {
@@ -92,6 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Tap robusto iPhone
   // =========================
   function bindTap(element, handler) {
+    if (!element) return;
+
     element.addEventListener("touchend", (e) => {
       e.preventDefault();
       touchLock = true;
@@ -211,7 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
     orb = createORB();
     matcher = createMatcher();
 
-    // più stabile passare l'elemento DOM direttamente
     const src = cv.imread(targetImage);
 
     if (src.empty()) {
@@ -241,78 +267,81 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =========================
-  // Detection reale (morbida)
+  // Detection reale
   // =========================
   function matchCurrentFrame() {
-  if (!cvReady || !targetDesc || targetDesc.empty()) {
-    return { detected: false, matches: 0 };
-  }
-
-  let src = null;
-  let gray = null;
-  let frameKeypoints = null;
-  let frameDesc = null;
-  let matches = null;
-
-  try {
-    src = cv.imread(canvas);
-    gray = new cv.Mat();
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-
-    frameKeypoints = new cv.KeyPointVector();
-    frameDesc = new cv.Mat();
-
-    const emptyMask = new cv.Mat();
-    orb.detectAndCompute(gray, emptyMask, frameKeypoints, frameDesc);
-    emptyMask.delete();
-
-    // DEBUG utile su telefono:
-    setStatus("KP target: " + targetKeypoints.size() + " | KP frame: " + frameKeypoints.size());
-
-    if (frameDesc.empty() || frameKeypoints.size() === 0) {
+    if (!cvReady || !targetDesc || targetDesc.empty()) {
       return { detected: false, matches: 0 };
     }
 
-    matches = new cv.DMatchVectorVector();
-    matcher.knnMatch(targetDesc, frameDesc, matches, 2);
+    let src = null;
+    let gray = null;
+    let frameKeypoints = null;
+    let frameDesc = null;
+    let matches = null;
 
-    let goodCount = 0;
+    try {
+      src = cv.imread(canvas);
+      gray = new cv.Mat();
+      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
 
-    for (let i = 0; i < matches.size(); i++) {
-      const pair = matches.get(i);
+      frameKeypoints = new cv.KeyPointVector();
+      frameDesc = new cv.Mat();
 
-      if (pair.size() >= 2) {
-        const m = pair.get(0);
-        const n = pair.get(1);
+      const emptyMask = new cv.Mat();
+      orb.detectAndCompute(gray, emptyMask, frameKeypoints, frameDesc);
+      emptyMask.delete();
 
-        // ratio test ancora più morbido
-        if (m.distance < 0.92 * n.distance) {
-          goodCount++;
-        }
+      // qui ti scrivo a schermo anche quanti keypoint ha il frame corrente
+      setStatus(
+        "KP target: " + targetKeypoints.size() +
+        " | KP frame: " + frameKeypoints.size()
+      );
 
-        m.delete();
-        n.delete();
+      if (frameDesc.empty() || frameKeypoints.size() === 0) {
+        return { detected: false, matches: 0 };
       }
 
-      pair.delete();
+      matches = new cv.DMatchVectorVector();
+      matcher.knnMatch(targetDesc, frameDesc, matches, 2);
+
+      let goodCount = 0;
+
+      for (let i = 0; i < matches.size(); i++) {
+        const pair = matches.get(i);
+
+        if (pair.size() >= 2) {
+          const m = pair.get(0);
+          const n = pair.get(1);
+
+          // ratio test volutamente molto morbido
+          if (m.distance < 0.92 * n.distance) {
+            goodCount++;
+          }
+
+          m.delete();
+          n.delete();
+        }
+
+        pair.delete();
+      }
+
+      return {
+        detected: goodCount >= DETECT_THRESHOLD,
+        matches: goodCount
+      };
+
+    } catch (err) {
+      console.error("Errore detection:", err);
+      return { detected: false, matches: 0 };
+    } finally {
+      if (src) src.delete();
+      if (gray) gray.delete();
+      if (frameKeypoints) frameKeypoints.delete();
+      if (frameDesc) frameDesc.delete();
+      if (matches) matches.delete();
     }
-
-    return {
-      detected: goodCount >= 5,
-      matches: goodCount
-    };
-
-  } catch (err) {
-    console.error("Errore detection:", err);
-    return { detected: false, matches: 0 };
-  } finally {
-    if (src) src.delete();
-    if (gray) gray.delete();
-    if (frameKeypoints) frameKeypoints.delete();
-    if (frameDesc) frameDesc.delete();
-    if (matches) matches.delete();
   }
-}
 
   // =========================
   // Scan loop
@@ -336,6 +365,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const result = matchCurrentFrame();
+
+        updateProgress(result.matches);
 
         if (result.detected) {
           stabilityCounter++;
@@ -385,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await startCamera();
       await initDetection();
+      setStatus("Scansione attiva...");
       startScanLoop();
     } catch (err) {
       console.error(err);
@@ -433,4 +465,5 @@ document.addEventListener("DOMContentLoaded", () => {
   bindTap(btnContinue, continueGame);
 
   updateOrientationNotice();
+  resetDebug();
 });
