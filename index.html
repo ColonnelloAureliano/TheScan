@@ -1,58 +1,140 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Detection Test</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R&D Challenge</title>
 
-<style>
-body {
-  margin: 0;
-  background: #111;
-  color: white;
-  font-family: Arial;
-  text-align: center;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1115;
+      color: white;
+      text-align: center;
+    }
 
-button {
-  padding: 15px 25px;
-  font-size: 18px;
-  background: red;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  margin-top: 20px;
-}
+    .screen {
+      display: none;
+      min-height: 100dvh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
 
-video {
-  width: 90%;
-  max-width: 400px;
-  margin-top: 20px;
-  background: black;
-}
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
 
-</style>
+    .btn {
+      padding: 16px 28px;
+      background: #d71920;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 18px;
+      margin-top: 25px;
+      cursor: pointer;
+    }
+
+    .btn.secondary {
+      background: #444;
+    }
+
+    #video {
+      width: 100%;
+      max-width: 420px;
+      background: black;
+      border-radius: 12px;
+      display: block;
+      object-fit: cover;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      background: rgba(255, 200, 0, 0.15);
+      pointer-events: none;
+      max-width: 520px;
+      line-height: 1.4;
+    }
+
+    .notice.vertical {
+      background: rgba(255, 80, 80, 0.2);
+    }
+
+    #scanStatus {
+      margin-top: 18px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+
+    .debug {
+      margin-top: 16px;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    #targetImage {
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>Test Detection</h1>
+  <!-- START -->
+  <section id="screenStart" class="screen active">
+    <h1>R&D CHALLENGE</h1>
+    <p>Trova il codice segreto</p>
 
-<button id="startBtn">START</button>
+    <div id="noticeStart" class="notice">
+      📱 Metti il telefono in orizzontale
+    </div>
 
-<p id="status">In attesa</p>
+    <button id="btnEnter" class="btn" type="button">ENTRA</button>
+  </section>
 
-<video id="video" autoplay playsinline muted></video>
-<canvas id="canvas" style="display:none;"></canvas>
+  <!-- SCAN -->
+  <section id="screenScan" class="screen">
+    <p>Scansione attiva</p>
 
-<p>Matches: <span id="matches">0</span></p>
+    <div id="noticeScan" class="notice">
+      📱 Scansione migliore in orizzontale
+    </div>
 
-<!-- ✅ FONDAMENTALE -->
-<img id="targetImage" src="target.jpg" style="display:none;">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
 
-<!-- ✅ OpenCV -->
-<script src="https://docs.opencv.org/4.x/opencv.js"></script>
-<script src="app.js"></script>
+    <p id="scanStatus">In attesa...</p>
 
+    <div class="debug">
+      <div>Matches: <span id="goodMatches">0</span></div>
+      <div>Inliers: <span id="inliers">0</span></div>
+      <div>Rilevamento: <span id="detectionText">NO</span></div>
+    </div>
+
+    <button id="btnExit" class="btn secondary" type="button">Esci</button>
+  </section>
+
+  <!-- RESULT -->
+  <section id="screenResult" class="screen">
+    <h1>✅ Hai trovato il codice segreto</h1>
+    <button id="btnContinue" class="btn" type="button">Continua</button>
+  </section>
+
+  <!-- TARGET -->
+  <img id="targetImage" src="target.jpg" alt="Target nascosto">
+
+  <!-- OpenCV -->
+  <script src="https://docs.opencv.org/4.x/opencv.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
