@@ -170,13 +170,88 @@ function detectFrame() {
 }
 
 // ===== LOOP =====
+
+  let stabilityCounter = 0;
+
+function detectFrameSimple() {
+
+  if (!cvReady) return false;
+
+  let src = cv.imread(canvas);
+  let gray = new cv.Mat();
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+  let kp = new cv.KeyPointVector();
+  let desc = new cv.Mat();
+
+  orb.detectAndCompute(gray, new cv.Mat(), kp, desc);
+
+  if (desc.empty()) {
+    cleanup();
+    return false;
+  }
+
+  let matches = new cv.DMatchVectorVector();
+  matcher.knnMatch(targetDesc, desc, matches, 2);
+
+  let good = [];
+
+  for (let i = 0; i < matches.size(); i++) {
+
+    let pair = matches.get(i);
+
+    if (pair.size() >= 2) {
+      let m = pair.get(0);
+      let n = pair.get(1);
+
+      // 👉 MATCH PIÙ "MORBIDO"
+      if (m.distance < 0.85 * n.distance) {
+        good.push(m);
+      }
+
+      m.delete();
+      n.delete();
+    }
+
+    pair.delete();
+  }
+
+  // 👉 SOGLIA MOLTO PIÙ FACILE
+  let detectedNow = good.length > 8;
+
+  // 👉 STABILITÀ SU PIÙ FRAME
+  if (detectedNow) {
+    stabilityCounter++;
+  } else {
+    stabilityCounter = 0;
+  }
+
+  let detected = stabilityCounter > 3;
+
+  // DEBUG
+  goodMatchesEl.textContent = good.length;
+  inliersEl.textContent = stabilityCounter;
+  detectionTextEl.textContent = detected ? "SI" : "NO";
+
+  function cleanup() {
+    src.delete();
+    gray.delete();
+    kp.delete();
+    desc.delete();
+    matches.delete();
+  }
+
+  cleanup();
+
+  return detected;
+}
 function scanFrame() {
 
   if (!scanning) return;
 
   ctx.drawImage(video, 0, 0);
 
-  const detected = detectFrame();
+  const detected = detectFrameSimple();
 
   if (detected) {
     onFound();
