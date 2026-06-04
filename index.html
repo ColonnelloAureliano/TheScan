@@ -117,7 +117,7 @@
 
     <div class="debug">
       <div>Matches: <span id="goodMatches">0</span></div>
-      <div>Inliers: <span id="inliers">0</span></div>
+      <div>Stability: <span id="inliers">0</span></div>
       <div>Rilevamento: <span id="detectionText">NO</span></div>
     </div>
 
@@ -130,11 +130,11 @@
     <button id="btnContinue" class="btn" type="button">Continua</button>
   </section>
 
-  <!-- TARGET -->
-  <img id="targetImage" src="target.jpg" alt="Target nascosto">
+  <!-- TARGET: deve stare nella stessa cartella -->
+  <img id="targetImage" src="target.jpg" alt="Target" />
 
-  <!-- OpenCV -->
-  <script src="https://docs.opencv.org/4.x/opencv.js"></script>
+  <!-- OpenCV reale -->
+  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
