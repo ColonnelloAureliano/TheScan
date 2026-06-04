@@ -104,25 +104,29 @@
 
   <!-- SCAN -->
   <section id="screenScan" class="screen">
-    <p>Scansione attiva</p>
+  <p>Scansione attiva</p>
 
-    <div id="noticeScan" class="notice">
-      📱 Scansione migliore in orizzontale
-    </div>
+  <div id="noticeScan" class="notice">
+    📱 Scansione migliore in orizzontale
+  </div>
 
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas"></canvas>
+  <video id="video" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
 
-    <p id="scanStatus">In attesa...</p>
+  <p id="scanStatus">In attesa...</p>
 
-    <div class="debug">
-      <div>Matches: <span id="goodMatches">0</span></div>
-      <div>Stability: <span id="inliers">0</span></div>
-      <div>Rilevamento: <span id="detectionText">NO</span></div>
-    </div>
+  <p id="progressText">Avvicinamento: 0 / 8 (0%)</p>
 
-    <button id="btnExit" class="btn secondary" type="button">Esci</button>
-  </section>
+  <div id="progressWrap" style="width:90%; max-width:420px; height:14px; background:#333; border-radius:999px; overflow:hidden; margin:8px auto 16px auto;">
+    <div id="progressBar" style="width:0%; height:100%; background:#00c853;"></div>
+  </div>
+
+  <p>Matches: <span id="goodMatches">0</span></p>
+  <p>Inliers: <span id="inliers">0</span></p>
+  <p>Rilevamento: <span id="detectionText">NO</span></p>
+
+  <button id="btnExit" class="btn">Esci</button>
+</section>
 
   <!-- RESULT -->
   <section id="screenResult" class="screen">
