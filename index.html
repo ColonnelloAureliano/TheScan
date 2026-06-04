@@ -28,13 +28,14 @@ body {
 }
 
 .btn {
-  padding: 15px 25px;
+  padding: 16px 28px;
   background: #d71920;
   border: none;
   border-radius: 12px;
   color: white;
   font-size: 18px;
-  margin-top: 20px;
+  margin-top: 25px;
+  cursor: pointer;
 }
 
 #video {
@@ -49,14 +50,14 @@ canvas {
 }
 
 .notice {
-  margin-top: 10px;
-  padding: 10px;
+  margin-top: 12px;
+  padding: 12px;
   font-size: 14px;
   border-radius: 10px;
   background: rgba(255,200,0,0.15);
+  pointer-events: none; /* 🔥 FIX iPhone */
 }
 
-/* se verticale cambia colore */
 .notice.vertical {
   background: rgba(255,80,80,0.2);
 }
