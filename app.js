@@ -32,22 +32,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let rafId = 0;
   let touchLock = false;
 
-  // OpenCV
+  // OpenCV state
   let cvReady = false;
   let orb = null;
   let matcher = null;
   let targetKeypoints = null;
   let targetDesc = null;
 
-  // parametri detection (volutamente “blandi”)
-  const DETECT_THRESHOLD = 8;     // abbassa/alza qui se serve
-  const STABILITY_REQUIRED = 3;   // numero frame consecutivi
-  const MAX_PROCESS_WIDTH = 640;  // riduce carico mobile
+  // parametri detection (blandi)
+  const DETECT_THRESHOLD = 8;     // soglia facile
+  const STABILITY_REQUIRED = 3;   // frame consecutivi
+  const MAX_PROCESS_WIDTH = 640;  // alleggerisce mobile
 
   let stabilityCounter = 0;
 
   // =========================
-  // UI
+  // UI helpers
   // =========================
   function showScreen(screen) {
     screenStart.classList.remove("active");
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("orientationchange", updateOrientationNotice);
 
   // =========================
-  // TAP robusto per iPhone
+  // Tap robusto iPhone
   // =========================
   function bindTap(element, handler) {
     element.addEventListener("touchend", (e) => {
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error("Fotocamera non supportata da questo browser");
+      throw new Error("Fotocamera non supportata");
     }
 
     setStatus("Richiesta fotocamera...");
@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function waitForTargetImage() {
     return new Promise((resolve, reject) => {
       if (!targetImage) {
-        reject(new Error("Elemento targetImage non trovato"));
+        reject(new Error("targetImage non trovato"));
         return;
       }
 
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function initDetection() {
-    setStatus("Carico detection...");
+    setStatus("Init OpenCV...");
 
     await waitForOpenCV();
     await waitForTargetImage();
@@ -211,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     orb = createORB();
     matcher = createMatcher();
 
+    // più stabile passare l'elemento DOM direttamente
     const src = cv.imread(targetImage);
 
     if (src.empty()) {
@@ -240,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =========================
-  // Detection reale (blanda)
+  // Detection reale (morbida)
   // =========================
   function matchCurrentFrame() {
     if (!cvReady || !targetDesc || targetDesc.empty()) {
@@ -281,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const m = pair.get(0);
           const n = pair.get(1);
 
-          // ratio test volutamente più morbido
+          // ratio test volutamente morbido
           if (m.distance < 0.88 * n.distance) {
             goodCount++;
           }
@@ -293,10 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
         pair.delete();
       }
 
-      const detectedNow = goodCount >= DETECT_THRESHOLD;
-
       return {
-        detected: detectedNow,
+        detected: goodCount >= DETECT_THRESHOLD,
         matches: goodCount
       };
 
@@ -316,7 +315,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Scan loop
   // =========================
   function startScanLoop() {
-    const waitForVideo = () => {
+    scanning = true;
+
+    const loop = () => {
       if (!scanning) return;
 
       if (video.videoWidth > 0 && video.videoHeight > 0) {
@@ -329,14 +330,30 @@ document.addEventListener("DOMContentLoaded", () => {
           canvas.height = h;
         }
 
-        processFrame();
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const result = matchCurrentFrame();
+
+        if (result.detected) {
+          stabilityCounter++;
+        } else {
+          stabilityCounter = 0;
+        }
+
+        goodMatchesEl.textContent = String(result.matches);
+        inliersEl.textContent = String(stabilityCounter);
+        detectionTextEl.textContent = stabilityCounter >= STABILITY_REQUIRED ? "SI" : "NO";
+
+        if (stabilityCounter >= STABILITY_REQUIRED) {
+          onFound();
+          return;
+        }
       }
 
-      rafId = requestAnimationFrame(waitForVideo);
+      rafId = requestAnimationFrame(loop);
     };
 
-    scanning = true;
-    rafId = requestAnimationFrame(waitForVideo);
+    rafId = requestAnimationFrame(loop);
   }
 
   function stopScanLoop() {
@@ -344,26 +361,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = 0;
-    }
-  }
-
-  function processFrame() {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const result = matchCurrentFrame();
-
-    if (result.detected) {
-      stabilityCounter++;
-    } else {
-      stabilityCounter = 0;
-    }
-
-    goodMatchesEl.textContent = String(result.matches);
-    inliersEl.textContent = String(stabilityCounter);
-    detectionTextEl.textContent = stabilityCounter >= STABILITY_REQUIRED ? "SI" : "NO";
-
-    if (stabilityCounter >= STABILITY_REQUIRED) {
-      onFound();
     }
   }
 
@@ -428,9 +425,6 @@ document.addEventListener("DOMContentLoaded", () => {
     starting = false;
   }
 
-  // =========================
-  // Bind eventi
-  // =========================
   bindTap(btnEnter, startFlow);
   bindTap(btnExit, goBackToStart);
   bindTap(btnContinue, continueGame);
