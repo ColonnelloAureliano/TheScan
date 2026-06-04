@@ -64,9 +64,6 @@ function stopCamera() {
 // ===== INIT OPENCV =====
 
 async function initCV() {
-goodMatchesEl.textContent = "KP: " + targetKP.size();
-console.log("Target keypoints:", targetKP.size());
-console.log("Target descriptors empty:", targetDesc.empty());
 
   scanStatus.textContent = "Carico detection...";
 
@@ -92,13 +89,12 @@ console.log("Target descriptors empty:", targetDesc.empty());
   orb = new cv.ORB(1000);
   matcher = new cv.BFMatcher(cv.NORM_HAMMING, false);
 
-  
-const img = cv.imread(targetImage);
+  const img = cv.imread(targetImage);
 
-if (img.empty()) {
-  console.log("❌ ERRORE: target non caricato");
-}
-
+  if (img.empty()) {
+    scanStatus.textContent = "❌ target NON caricato";
+    return;
+  }
 
   targetGray = new cv.Mat();
   cv.cvtColor(img, targetGray, cv.COLOR_RGBA2GRAY);
@@ -107,15 +103,17 @@ if (img.empty()) {
   targetDesc = new cv.Mat();
 
   orb.detectAndCompute(targetGray, new cv.Mat(), targetKP, targetDesc);
+
+  // ✅ QUI è corretto
   scanStatus.textContent = "KP target: " + targetKP.size();
 
   console.log("✅ Target keypoints:", targetKP.size());
+  console.log("✅ Descriptor empty:", targetDesc.empty());
 
   img.delete();
 
-  scanStatus.textContent = "KP target: " + targetKP.size();
+  cvReady = true;
 }
-
 
 // ===== SCAN =====
 function startScan() {
