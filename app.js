@@ -40,9 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let targetDesc = null;
 
   // parametri detection (blandi)
-  const DETECT_THRESHOLD = 8;     // soglia facile
+  const DETECT_THRESHOLD = 5;     // soglia facile
   const STABILITY_REQUIRED = 3;   // frame consecutivi
-  const MAX_PROCESS_WIDTH = 640;  // alleggerisce mobile
+  const MAX_PROCESS_WIDTH = 960;  // alleggerisce mobile
 
   let stabilityCounter = 0;
 
@@ -244,72 +244,75 @@ document.addEventListener("DOMContentLoaded", () => {
   // Detection reale (morbida)
   // =========================
   function matchCurrentFrame() {
-    if (!cvReady || !targetDesc || targetDesc.empty()) {
+  if (!cvReady || !targetDesc || targetDesc.empty()) {
+    return { detected: false, matches: 0 };
+  }
+
+  let src = null;
+  let gray = null;
+  let frameKeypoints = null;
+  let frameDesc = null;
+  let matches = null;
+
+  try {
+    src = cv.imread(canvas);
+    gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+    frameKeypoints = new cv.KeyPointVector();
+    frameDesc = new cv.Mat();
+
+    const emptyMask = new cv.Mat();
+    orb.detectAndCompute(gray, emptyMask, frameKeypoints, frameDesc);
+    emptyMask.delete();
+
+    // DEBUG utile su telefono:
+    setStatus("KP target: " + targetKeypoints.size() + " | KP frame: " + frameKeypoints.size());
+
+    if (frameDesc.empty() || frameKeypoints.size() === 0) {
       return { detected: false, matches: 0 };
     }
 
-    let src = null;
-    let gray = null;
-    let frameKeypoints = null;
-    let frameDesc = null;
-    let matches = null;
+    matches = new cv.DMatchVectorVector();
+    matcher.knnMatch(targetDesc, frameDesc, matches, 2);
 
-    try {
-      src = cv.imread(canvas);
-      gray = new cv.Mat();
-      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    let goodCount = 0;
 
-      frameKeypoints = new cv.KeyPointVector();
-      frameDesc = new cv.Mat();
+    for (let i = 0; i < matches.size(); i++) {
+      const pair = matches.get(i);
 
-      const emptyMask = new cv.Mat();
-      orb.detectAndCompute(gray, emptyMask, frameKeypoints, frameDesc);
-      emptyMask.delete();
+      if (pair.size() >= 2) {
+        const m = pair.get(0);
+        const n = pair.get(1);
 
-      if (frameDesc.empty()) {
-        return { detected: false, matches: 0 };
-      }
-
-      matches = new cv.DMatchVectorVector();
-      matcher.knnMatch(targetDesc, frameDesc, matches, 2);
-
-      let goodCount = 0;
-
-      for (let i = 0; i < matches.size(); i++) {
-        const pair = matches.get(i);
-
-        if (pair.size() >= 2) {
-          const m = pair.get(0);
-          const n = pair.get(1);
-
-          // ratio test volutamente morbido
-          if (m.distance < 0.88 * n.distance) {
-            goodCount++;
-          }
-
-          m.delete();
-          n.delete();
+        // ratio test ancora più morbido
+        if (m.distance < 0.92 * n.distance) {
+          goodCount++;
         }
 
-        pair.delete();
+        m.delete();
+        n.delete();
       }
 
-      return {
-        detected: goodCount >= DETECT_THRESHOLD,
-        matches: goodCount
-      };
-
-    } catch (err) {
-      console.error("Errore detection:", err);
-      return { detected: false, matches: 0 };
-    } finally {
-      if (src) src.delete();
-      if (gray) gray.delete();
-      if (frameKeypoints) frameKeypoints.delete();
-      if (frameDesc) frameDesc.delete();
-      if (matches) matches.delete();
+      pair.delete();
     }
+
+    return {
+      detected: goodCount >= 5,
+      matches: goodCount
+    };
+
+  } catch (err) {
+    console.error("Errore detection:", err);
+    return { detected: false, matches: 0 };
+  } finally {
+    if (src) src.delete();
+    if (gray) gray.delete();
+    if (frameKeypoints) frameKeypoints.delete();
+    if (frameDesc) frameDesc.delete();
+    if (matches) matches.delete();
   }
+}
 
   // =========================
   // Scan loop
