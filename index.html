@@ -3,142 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>R&D Challenge</title>
+  <title>Morse Vampire</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f1115;
-      color: white;
-      text-align: center;
-    }
-
-    .screen {
-      display: none;
-      min-height: 100dvh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .btn {
-      padding: 16px 28px;
-      background: #d71920;
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-size: 18px;
-      margin-top: 25px;
-      cursor: pointer;
-    }
-
-    .btn.secondary {
-      background: #444;
-    }
-
-    #video {
-      width: 100%;
-      max-width: 420px;
-      background: black;
-      border-radius: 12px;
-      display: block;
-      object-fit: cover;
-    }
-
-    canvas {
-      display: none;
-    }
-
-    .notice {
-      margin-top: 12px;
-      padding: 12px;
-      font-size: 14px;
-      border-radius: 10px;
-      background: rgba(255, 200, 0, 0.15);
-      pointer-events: none;
-      max-width: 520px;
-      line-height: 1.4;
-    }
-
-    .notice.vertical {
-      background: rgba(255, 80, 80, 0.2);
-    }
-
-    #scanStatus {
-      margin-top: 18px;
-      font-weight: bold;
-      min-height: 24px;
-    }
-
-    .debug {
-      margin-top: 16px;
-      line-height: 1.8;
-      font-size: 16px;
-    }
-
-    #targetImage {
-      display: none;
-    }
-  </style>
+  <!-- ✅ CSS -->
+  style.css
 </head>
+
 <body>
 
-  <!-- START -->
-  <section id="screenStart" class="screen active">
-    <h1>R&D CHALLENGE</h1>
-    <p>Trova il codice segreto</p>
+<div id="app">
 
-    <div id="noticeStart" class="notice">
-      📱 Metti il telefono in orizzontale
+  <div class="top">
+    <div class="bar">
+      <div id="progress"></div>
     </div>
-
-    <button id="btnEnter" class="btn" type="button">ENTRA</button>
-  </section>
-
-  <!-- SCAN -->
-  <section id="screenScan" class="screen">
-  <p>Scansione attiva</p>
-
-  <div id="noticeScan" class="notice">
-    📱 Scansione migliore in orizzontale
+    <div id="time">Pronto</div>
   </div>
 
-  <video id="video" autoplay playsinline muted></video>
-  <canvas id="canvas"></canvas>
+  <button id="startBtn">
 
-  <p id="scanStatus">In attesa...</p>
+    <div class="waves"></div>
 
-  <p id="progressText">Avvicinamento: 0 / 8 (0%)</p>
+    <svg viewBox="0 0 300 200" class="mouth">
 
-  <div id="progressWrap" style="width:90%; max-width:420px; height:14px; background:#333; border-radius:999px; overflow:hidden; margin:8px auto 16px auto;">
-    <div id="progressBar" style="width:0%; height:100%; background:#00c853;"></div>
+      <!-- labbra -->
+      <path d="M20 100 C50 20, 250 20, 280 100 C250 80, 200 70, 150 70 C100 70, 50 80, 20 100 Z"
+        fill="#c4002b"/>
+
+      <path d="M20 100 C50 180, 250 180, 280 100 C250 120, 200 130, 150 130 C100 130, 50 120, 20 100 Z"
+        fill="#600015"/>
+
+      <!-- interno -->
+      <ellipse id="mouthInner" cx="150" cy="100" rx="90" ry="30" fill="#120002"/>
+
+      <!-- lingua -->
+      <ellipse cx="150" cy="115" rx="40" ry="15" fill="#ff4d7a"/>
+
+      <!-- zanne -->
+      <polygon id="fangL" points="120,70 135,70 127,105" fill="white"/>
+      <polygon id="fangR" points="165,70 180,70 173,105" fill="white"/>
+
+    </svg>
+
+  </button>
+
+  <div id="status">Premi per iniziare</div>
+  <div id="sub">Microfono necessario</div>
+
+  <div class="panel">
+    <div>Sequenza: <span id="seq">—</span></div>
+    <div>Durata: <span id="dur">0</span> ms</div>
+    <div>Livello: <span id="lvl">0</span></div>
   </div>
 
-  <p>Matches: <span id="goodMatches">0</span></p>
-  <p>Inliers: <span id="inliers">0</span></p>
-  <p>Rilevamento: <span id="detectionText">NO</span></p>
+</div>
 
-  <button id="btnExit" class="btn">Esci</button>
-</section>
+<!-- ✅ JS -->
+app.jsscript>
 
-  <!-- RESULT -->
-  <section id="screenResult" class="screen">
-    <h1>✅ Hai trovato il codice segreto</h1>
-    <button id="btnContinue" class="btn" type="button">Continua</button>
-  </section>
-
-  <!-- TARGET: deve stare nella stessa cartella -->
-  <img id="targetImage" src="target.jpg" alt="Target" />
-
-  <!-- OpenCV reale -->
-  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>
